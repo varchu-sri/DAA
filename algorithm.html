@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dutch Flag Sorting Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --apple: #FF6B6B;
+            --orange: #FFA502;
+            --banana: #FFEAA7;
+            --low: #4361EE;
+            --mid: #4CC9F0;
+            --high: #3A0CA3;
+            --pivot: #F72585;
+            --bg: #F0F4F8;
+            --card: #FFFFFF;
+            --text: #2B2D42;
+            --text-light: #6C757D;
+            --border: #DEE2E6;
+            --success: #38B000;
+            --warning: #FFAA00;
+            --danger: #FF3F34;
+            --shadow: 0 8px 25px rgba(0,0,0,0.08);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+            --gradient: linear-gradient(135deg, #4361EE, #3A0CA3);
+            --gradient-success: linear-gradient(135deg, #38B000, #7CFC00);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 30px;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--gradient);
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: sparkleFloat 10s infinite ease-in-out;
+            filter: blur(2px);
+        }
+
+        .confetti {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--gradient-success);
+            opacity: 0.8;
+            animation: confettiBurst 3s ease-out forwards;
+            transform-origin: center;
+        }
+
+        @keyframes sparkleFloat {
+            0% { transform: translateY(100vh) scale(0.3) rotate(0deg); opacity: 0; }
+            50% { transform: translateY(50vh) scale(1) rotate(180deg); opacity: 0.6; }
+            100% { transform: translateY(-20vh) scale(0.3) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes confettiBurst {
+            0% { transform: translateY(0) rotate(0deg) scale(0); opacity: 1; }
+            20% { transform: translateY(-50px) rotate(180deg) scale(1.2); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg) scale(0.8); opacity: 0; }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes bounceOut {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card);
+            border-radius: 25px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .game-header {
+            background: var(--gradient);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+            animation: shimmer 15s linear infinite;
+        }
+
+        .game-header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .game-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 10px auto 0;
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        .level-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.25);
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            animation: glowPulse 2s infinite;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+
+        .level-indicator:hover {
+            transform: scale(1.05);
+            background: rgba(255,255,255,0.35);
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--warning);
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .home-btn:hover {
+            transform: scale(1.1) rotate(5deg);
+            background: #FFB700;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .game-board {
+            padding: 40px;
+            background: linear-gradient(to bottom, var(--card), #F8FAFC);
+        }
+
+        .array-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            position: relative;
+            min-height: 120px;
+            perspective: 1000px;
+        }
+
+        .fruit-item {
+            width: 100px;
+            height: 100px;
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            position: relative;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transform-style: preserve-3d;
+            background: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6));
+        }
+
+        .fruit-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(255,255,255,0.2);
+            transform: translateZ(-20px);
+            filter: blur(8px);
+            transition: var(--transition);
+        }
+
+        .fruit-item:hover {
+            transform: scale(1.1) translateZ(20px) rotate(3deg);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .fruit-item.apple { background: var(--apple); color: white; }
+        .fruit-item.orange { background: var(--orange); color: white; }
+        .fruit-item.banana { background: var(--banana); color: var(--text); }
+
+        .fruit-item.added {
+            animation: bounceIn 0.5s ease-out;
+        }
+
+        .fruit-item.removed {
+            animation: bounceOut 0.5s ease-out forwards;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -50px;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 30px;
+            color: white;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(6px);
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+
+        .low-pointer { background: rgba(67, 97, 238, 0.9); }
+        .mid-pointer { background: rgba(76, 201, 240, 0.9); }
+        .high-pointer { background: rgba(58, 12, 163, 0.9); }
+        .pivot-pointer { background: rgba(247, 37, 133, 0.9); }
+
+        .fruit-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .fruit-btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .add-btn { background: var(--success); color: white; }
+        .remove-btn { background: var(--danger); color: white; }
+        .fruit-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .fruit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.3), transparent);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: -1;
+        }
+
+        .btn:hover::before { opacity: 1; }
+        .btn:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+        .btn:active { transform: translateY(-2px) scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-primary { background: var(--low); color: white; }
+        .btn-secondary { background: var(--mid); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--low); color: var(--low); }
+
+        .game-status {
+            background: #F8FAFC;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 30px 0;
+            text-align: center;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .game-status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: var(--gradient);
+            animation: slideRight 2s infinite;
+        }
+
+        .game-status h3 {
+            margin-bottom: 15px;
+            color: var(--high);
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: #E9ECEF;
+            border-radius: 12px;
+            margin: 30px 0;
+            overflow: hidden;
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient);
+            width: 0;
+            transition: width 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shine 2s infinite;
+        }
+
+        .legend, .algo-container {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 40px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .legend-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .legend-color {
+            width: 25px;
+            height: 25px;
+            border-radius: 8px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        .code-box {
+            background: #F8FAFC;
+            padding: 25px;
+            border-radius: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            line-height: 1.8;
+            max-width: 500px;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 6px solid var(--mid);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-line {
+            transition: var(--transition);
+            padding: 3px 10px;
+            border-radius: 6px;
+            white-space: pre;
+        }
+
+        .code-line.active {
+            background: rgba(76, 201, 240, 0.2);
+            border-left: 4px solid var(--mid);
+            padding-left: 15px;
+            animation: codePulse 0.5s ease-in-out;
+        }
+
+        .algo-animation {
+            background: #F8FAFC;
+            padding: 25px;
+            border-radius: 20px;
+            margin: 30px 0;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            min-height: 100px;
+        }
+
+        .algo-animation p {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin: 10px 0;
+        }
+
+        .settings-panel {
+            background: #F8FAFC;
+            padding: 25px;
+            border-radius: 20px;
+            margin: 30px 0;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+
+        .settings-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 12px;
+            transition: var(--transition);
+        }
+
+        .settings-title:hover {
+            background: rgba(76, 201, 240, 0.1);
+        }
+
+        .settings-title h3 {
+            color: var(--high);
+            font-weight: 600;
+        }
+
+        .settings-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+        }
+
+        .settings-content.active {
+            max-height: 300px;
+        }
+
+        .setting-group label {
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        input {
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: white;
+            font-size: 1rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        input:focus {
+            border-color: var(--mid);
+            box-shadow: 0 0 0 4px rgba(76, 201, 240, 0.25);
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            min-width: 140px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--high);
+            margin-bottom: 8px;
+        }
+
+        .comparison-games-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 40px 0;
+        }
+
+        .comparison-section, .games-section {
+            background: var(--card);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .comparison-section:hover, .games-section:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .comparison-table th {
+            background: var(--bg);
+            padding: 15px;
+            font-weight: 600;
+            color: var(--high);
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(76, 201, 240, 0.05);
+            transform: scale(1.01);
+            transition: var(--transition);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) rotate(2deg);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        .game-card.active {
+            border: 3px solid var(--mid);
+            transform: scale(1.05);
+        }
+
+        .game-card i {
+            font-size: 3rem;
+            color: var(--mid);
+            animation: float 3s infinite ease-in-out;
+        }
+
+        .results-summary {
+            background: #F8FAFC;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 30px 0;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+
+        .results-summary h2 {
+            color: var(--high);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid var(--mid);
+            padding-bottom: 10px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .results-table th, .results-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .results-table th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--high);
+        }
+
+        .results-table tr:hover {
+            background: rgba(76, 201, 240, 0.05);
+            transform: scale(1.01);
+        }
+
+        .tutorial {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeInScale 0.5s ease-out;
+        }
+
+        .tutorial-content {
+            background: var(--card);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: var(--shadow-lg);
+            max-width: 800px;
+            transform: perspective(1000px) rotateX(5deg);
+            transition: var(--transition);
+        }
+
+        .tutorial-content:hover {
+            transform: perspective(1000px) rotateX(0deg);
+        }
+
+        .tutorial-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--low);
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tutorial-close:hover {
+            transform: scale(1.15) rotate(180deg);
+            background: var(--high);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab:hover {
+            background: rgba(76, 201, 240, 0.2);
+        }
+
+        .tab.active {
+            background: var(--gradient);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+            50% { box-shadow: 0 0 20px rgba(255,255,255,0.8); }
+        }
+
+        @keyframes swapBounce {
+            0% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-80px) rotate(90deg); }
+            50% { transform: translateY(0) rotate(180deg); }
+            75% { transform: translateY(-40px) rotate(270deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        @keyframes codePulse {
+            0% { background: rgba(76, 201, 240, 0.1); transform: scale(1); }
+            50% { background: rgba(76, 201, 240, 0.3); transform: scale(1.02); }
+            100% { background: rgba(76, 201, 240, 0.2); transform: scale(1); }
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes slideRight {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .swap-animation { animation: swapBounce 0.8s ease-in-out; }
+        .victory { animation: spin 1.5s infinite linear; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .game-header h1 { font-size: 2.2rem; }
+            .fruit-item { width: 80px; height: 80px; font-size: 2.5rem; }
+            .controls, .fruit-controls { flex-direction: column; align-items: center; }
+            .btn, .fruit-btn { width: 100%; max-width: 300px; }
+            .comparison-games-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-effects" id="sparkles"></div>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="game-header-content">
+                <div class="home-btn" id="homeBtn"><i class="fas fa-home"></i> Home</div>
+                <div class="level-indicator">
+                    <i class="fas fa-star"></i>
+                    <span id="levelText">Level 1: Basic Sort</span>
+                </div>
+                <h1 id="gameTitle">Dutch Flag Sorting Game</h1>
+                <p id="gameDesc">Sort the fruits with the power of three pointers! Learn the efficient partitioning algorithm used in quick sort.</p>
+            </div>
+        </div>
+
+        <div class="game-board">
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="stepsCount">0</div>
+                    <div class="stat-label">Steps</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="swapsCount">0</div>
+                    <div class="stat-label">Swaps</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="timeElapsed">0s</div>
+                    <div class="stat-label">Time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="efficiencyScore">0%</div>
+                    <div class="stat-label">Efficiency</div>
+                </div>
+            </div>
+
+            <div class="array-container" id="arrayContainer"></div>
+
+            <div class="fruit-controls">
+                <button class="fruit-btn add-btn" id="addApple"><i class="fas fa-plus"></i> Add Apple</button>
+                <button class="fruit-btn add-btn" id="addOrange"><i class="fas fa-plus"></i> Add Orange</button>
+                <button class="fruit-btn add-btn" id="addBanana"><i class="fas fa-plus"></i> Add Banana</button>
+                <button class="fruit-btn remove-btn" id="removeFruit"><i class="fas fa-minus"></i> Remove Last</button>
+            </div>
+
+            <div class="algo-container">
+                <div class="algo-item">
+                    <div class="code-box" id="pseudocode"></div>
+                </div>
+            </div>
+
+            <div class="algo-animation" id="algoAnimation">
+                <p>Algorithm steps will appear here during sorting.</p>
+            </div>
+
+            <div class="legend" id="legend"></div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn"><i class="fas fa-play"></i> Start Game</button>
+                <button class="btn btn-secondary" id="stepBtn" disabled><i class="fas fa-step-forward"></i> Step</button>
+                <button class="btn btn-success" id="autoBtn" disabled><i class="fas fa-forward"></i> Auto Run</button>
+                <button class="btn btn-danger" id="resetBtn" disabled><i class="fas fa-undo"></i> Reset</button>
+                <button class="btn btn-outline" id="hintBtn"><i class="fas fa-lightbulb"></i> Hint</button>
+            </div>
+
+            <div class="game-status" id="gameStatus">
+                <h3>Welcome to Dutch Flag Sorting!</h3>
+                <p>Click "Start Game" to begin your sorting adventure. Use the controls to step through the algorithm or let it run automatically.</p>
+            </div>
+
+            <div class="settings-panel">
+                <div class="settings-title" id="settingsToggle">
+                    <h3><i class="fas fa-cog"></i> Game Settings</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="settings-content" id="settingsContent">
+                    <div class="setting-group">
+                        <label for="arraySize">Initial Array Size</label>
+                        <input type="range" id="arraySize" min="5" max="15" value="8">
+                        <span id="arraySizeValue">8 items</span>
+                    </div>
+                    <div class="setting-group">
+                        <label for="speed">Animation Speed</label>
+                        <input type="range" id="speed" min="1" max="5" value="3">
+                        <span id="speedValue">Normal</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-games-container">
+                <div class="comparison-section">
+                    <h2>Algorithm Comparison</h2>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Time Complexity</th>
+                                <th>Space Complexity</th>
+                                <th>Best Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="highlight">
+                                <td>Dutch Flag</td>
+                                <td>O(n)</td>
+                                <td>O(1)</td>
+                                <td>3-way partitioning</td>
+                            </tr>
+                            <tr>
+                                <td>Bubble Sort</td>
+                                <td>O(n²)</td>
+                                <td>O(1)</td>
+                                <td>Small arrays</td>
+                            </tr>
+                            <tr>
+                                <td>Quick Sort</td>
+                                <td>O(n log n)</td>
+                                <td>O(log n)</td>
+                                <td>General purpose</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="games-section">
+                    <h2>Explore Other Games</h2>
+                    <div class="games-grid">
+                        <div class="game-card" id="dutchCard" onclick="startDutchFlag()">
+                            <i class="fas fa-flag"></i>
+                            <h3>Dutch Flag</h3>
+                            <p>Three-pointer partitioning</p>
+                        </div>
+                        <div class="game-card" id="bubbleCard" onclick="startBubbleSort()">
+                            <i class="fas fa-bubble-chart"></i>
+                            <h3>Bubble Sort</h3>
+                            <p>Classic bubble rising</p>
+                        </div>
+                        <div class="game-card" id="quickCard" onclick="startQuickSort()">
+                            <i class="fas fa-random"></i>
+                            <h3>Quick Sort</h3>
+                            <p>Divide and conquer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-summary" id="resultsSummary">
+                <h2>Results Summary</h2>
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Steps</th>
+                            <th>Swaps</th>
+                            <th>Time</th>
+                            <th>Efficiency</th>
+                            <th>Difference (vs Dutch)</th>
+                            <th>Sorted Array</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="tutorial" id="tutorial">
+        <div class="tutorial-content">
+            <button class="tutorial-close" id="tutorialClose">×</button>
+            <h2>Welcome to Sorting Games!</h2>
+            <div class="tabs">
+                <div class="tab active" data-tab="intro">Introduction</div>
+                <div class="tab" data-tab="howto">How to Play</div>
+                <div class="tab" data-tab="algorithm">Algorithm</div>
+            </div>
+            <div class="tab-content active" id="intro">
+                <p>Explore different sorting algorithms through interactive games!</p>
+                <h3>Objective</h3>
+                <p>Sort fruits into order using various techniques.</p>
+            </div>
+            <div class="tab-content" id="howto">
+                <h3>How to Play</h3>
+                <ol>
+                    <li>Select a game from "Explore Other Games"</li>
+                    <li>Click "Start Game" to begin sorting the current array</li>
+                    <li>Use "Step" or "Auto Run" to sort</li>
+                    <li>Add or remove fruits anytime before sorting</li>
+                    <li>Check results in the summary below</li>
+                </ol>
+            </div>
+            <div class="tab-content" id="algorithm">
+                <h3>About Algorithms</h3>
+                <p>Learn about Dutch Flag, Bubble Sort, and Quick Sort!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let array = [];
+        let originalArray = [];
+        let low = 0, mid = 0, high = 0, pivot = 0;
+        let steps = 0, swaps = 0, timeStart = 0;
+        let isRunning = false;
+        let intervalId = null;
+        let currentAlgorithm = 'dutch';
+        let results = [];
+        const fruits = ['🍎', '🍊', '🍌'];
+        let quickState = { i: -1, j: 0, low: 0, high: 0, partitioning: false };
+        let timeInterval = null;
+
+        const arrayContainer = document.getElementById('arrayContainer');
+        const gameStatus = document.getElementById('gameStatus');
+        const startBtn = document.getElementById('startBtn');
+        const stepBtn = document.getElementById('stepBtn');
+        const autoBtn = document.getElementById('autoBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const progressBar = document.getElementById('progressBar');
+        const stepsCount = document.getElementById('stepsCount');
+        const swapsCount = document.getElementById('swapsCount');
+        const timeElapsed = document.getElementById('timeElapsed');
+        const efficiencyScore = document.getElementById('efficiencyScore');
+        const arraySize = document.getElementById('arraySize');
+        const arraySizeValue = document.getElementById('arraySizeValue');
+        const speed = document.getElementById('speed');
+        const speedValue = document.getElementById('speedValue');
+        const tutorial = document.getElementById('tutorial');
+        const tutorialClose = document.getElementById('tutorialClose');
+        const settingsToggle = document.getElementById('settingsToggle');
+        const settingsContent = document.getElementById('settingsContent');
+        const pseudocode = document.getElementById('pseudocode');
+        const legend = document.getElementById('legend');
+        const gameTitle = document.getElementById('gameTitle');
+        const gameDesc = document.getElementById('gameDesc');
+        const resultsTable = document.getElementById('resultsTable').querySelector('tbody');
+        const dutchCard = document.getElementById('dutchCard');
+        const bubbleCard = document.getElementById('bubbleCard');
+        const quickCard = document.getElementById('quickCard');
+        const addApple = document.getElementById('addApple');
+        const addOrange = document.getElementById('addOrange');
+        const addBanana = document.getElementById('addBanana');
+        const removeFruit = document.getElementById('removeFruit');
+        const algoAnimation = document.getElementById('algoAnimation');
+        const homeBtn = document.getElementById('homeBtn');
+
+        startBtn.addEventListener('click', startGame);
+        stepBtn.addEventListener('click', step);
+        autoBtn.addEventListener('click', autoRun);
+        resetBtn.addEventListener('click', resetGame);
+        hintBtn.addEventListener('click', showHint);
+        addApple.addEventListener('click', () => addFruit('🍎'));
+        addOrange.addEventListener('click', () => addFruit('🍊'));
+        addBanana.addEventListener('click', () => addFruit('🍌'));
+        removeFruit.addEventListener('click', removeLastFruit);
+        tutorialClose.addEventListener('click', () => tutorial.style.display = 'none');
+        settingsToggle.addEventListener('click', () => settingsContent.classList.toggle('active'));
+        arraySize.addEventListener('input', () => arraySizeValue.textContent = `${arraySize.value} items`);
+        speed.addEventListener('input', () => {
+            const speeds = ['Very Slow', 'Slow', 'Normal', 'Fast', 'Very Fast'];
+            speedValue.textContent = speeds[speed.value - 1];
+        });
+        homeBtn.addEventListener('click', goHome);
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        function initSparkles() {
+            const sparkles = document.getElementById('sparkles');
+            for (let i = 0; i < 25; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = `${Math.random() * 100}%`;
+                sparkle.style.animationDelay = `${Math.random() * 10}s`;
+                sparkles.appendChild(sparkle);
+            }
+        }
+
+        function generateInitialArray() {
+            if (array.length === 0) {
+                const size = parseInt(arraySize.value);
+                array = Array.from({ length: size }, () => fruits[Math.floor(Math.random() * 3)]);
+                originalArray = [...array];
+                high = array.length - 1;
+            }
+            renderArray();
+        }
+
+        function renderArray() {
+            arrayContainer.innerHTML = '';
+            array.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `fruit-item ${getFruitClass(item)}`;
+                div.textContent = item;
+                arrayContainer.appendChild(div);
+
+                if (currentAlgorithm === 'dutch' && isRunning) {
+                    if (index === low) addPointer(div, 'low');
+                    if (index === mid) addPointer(div, 'mid');
+                    if (index === high) addPointer(div, 'high');
+                } else if (currentAlgorithm === 'quick' && isRunning) {
+                    if (index === quickState.low) addPointer(div, 'low');
+                    if (index === quickState.i) addPointer(div, 'mid');
+                    if (index === quickState.j) addPointer(div, 'high');
+                    if (index === quickState.high) addPointer(div, 'pivot');
+                }
+            });
+            updateFruitControls();
+        }
+
+        function getFruitClass(fruit) {
+            const mapping = {
+                '🍎': 'apple',
+                '🍊': 'orange',
+                '🍌': 'banana'
+            };
+            return mapping[fruit];
+        }
+
+        function addPointer(element, type) {
+            const pointer = document.createElement('div');
+            pointer.className = `pointer ${type}-pointer`;
+            pointer.textContent = type.toUpperCase();
+            element.appendChild(pointer);
+        }
+
+        function addFruit(fruit) {
+            if (array.length >= 15) {
+                gameStatus.innerHTML = '<h3>Limit Reached</h3><p>Maximum array size is 15!</p>';
+                return;
+            }
+            array.push(fruit);
+            originalArray = [...array];
+            renderArray();
+            const lastItem = arrayContainer.lastChild;
+            lastItem.classList.add('added');
+            setTimeout(() => lastItem.classList.remove('added'), 500);
+            gameStatus.innerHTML = `<h3>Fruit Added</h3><p>Added ${fruit} to the array.</p>`;
+            updateProgress();
+        }
+
+        function removeLastFruit() {
+            if (array.length <= 0) {
+                gameStatus.innerHTML = '<h3>Empty Array</h3><p>No fruits to remove!</p>';
+                return;
+            }
+            const lastItem = arrayContainer.lastChild;
+            lastItem.classList.add('removed');
+            setTimeout(() => {
+                array.pop();
+                originalArray = [...array];
+                renderArray();
+            }, 500);
+            gameStatus.innerHTML = '<h3>Fruit Removed</h3><p>Removed the last fruit.</p>';
+            updateProgress();
+        }
+
+        function updateFruitControls() {
+            addApple.disabled = array.length >= 15 || isRunning;
+            addOrange.disabled = array.length >= 15 || isRunning;
+            addBanana.disabled = array.length >= 15 || isRunning;
+            removeFruit.disabled = array.length <= 0 || isRunning;
+        }
+
+        function updateUI(algorithm) {
+            currentAlgorithm = algorithm;
+            document.querySelectorAll('.game-card').forEach(card => card.classList.remove('active'));
+            if (algorithm === 'dutch') {
+                dutchCard.classList.add('active');
+                gameTitle.textContent = 'Dutch Flag Sorting Game';
+                gameDesc.textContent = 'Sort the fruits with the power of three pointers! Learn the efficient partitioning algorithm used in quick sort.';
+                pseudocode.innerHTML = `
+                    <div class="code-line" data-line="1">DutchNationalFlag(arr):</div>
+                    <div class="code-line" data-line="2">    low = 0</div>
+                    <div class="code-line" data-line="3">    mid = 0</div>
+                    <div class="code-line" data-line="4">    high = arr.length - 1</div>
+                    <div class="code-line" data-line="5">    while mid ≤ high:</div>
+                    <div class="code-line" data-line="6">        if arr[mid] = apple:</div>
+                    <div class="code-line" data-line="7">            swap(arr[low], arr[mid])</div>
+                    <div class="code-line" data-line="8">            low++, mid++</div>
+                    <div class="code-line" data-line="9">        else if arr[mid] = orange:</div>
+                    <div class="code-line" data-line="10">            mid++</div>
+                    <div class="code-line" data-line="11">        else (banana):</div>
+                    <div class="code-line" data-line="12">            swap(arr[mid], arr[high])</div>
+                    <div class="code-line" data-line="13">            high--</div>
+                `;
+                legend.innerHTML = `
+                    <div class="legend-item"><div class="legend-color" style="background: var(--low);"></div><span>Low Pointer</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: var(--mid);"></div><span>Mid Pointer</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: var(--high);"></div><span>High Pointer</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: var(--apple);"></div><span>Apple (Low)</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: var(--orange);"></div><span>Orange (Mid)</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: var(--banana);"></div><span>Banana (High)</span></div>
+                `;
+            } else if (algorithm === 'bubble') {
+                bubbleCard.classList.add('active');
+                gameTitle.textContent = 'Bubble Sort Game';
+                gameDesc.textContent = 'Watch the fruits bubble up to their correct positions in this classic sorting algorithm!';
+                pseudocode.innerHTML = `
+                    <div class="code-line" data-line="1">BubbleSort(arr):</div>
+                    <div class="code-line" data-line="2">    for i = 0 to arr.length - 1:</div>
+                    <div class="code-line" data-line="3">        for j = 0 to arr.length - i - 1:</div>
+                    <div class="code-line" data-line="4">            if arr[j] > arr[j + 1]:</div>
+                    <div class="code-line" data-line="5">                swap(arr[j], arr[j + 1])</div>
+                `;
+                legend.innerHTML = '';
+            } else if (algorithm === 'quick') {
+                quickCard.classList.add('active');
+                gameTitle.textContent = 'Quick Sort Game';
+                gameDesc.textContent = 'Divide and conquer with this efficient sorting algorithm!';
+                pseudocode.innerHTML = `
+                    <div class="code-line" data-line="1">QuickSort(arr, low, high):</div>
+                    <div class="code-line" data-line="2">    if low < high:</div>
+                    <div class="code-line" data-line="3">        pivotIndex = partition(arr, low, high)</div>
+                    <div class="code-line" data-line="4">        QuickSort(arr, low, pivotIndex - 1)</div>
+                    <div class="code-line" data-line="5">        QuickSort(arr, pivotIndex + 1, high)</div>
+                    <div class="code-line" data-line="6">partition(arr, low, high):</div>
+                    <div class="code-line" data-line="7">    pivot = arr[high]</div>
+                    <div class="code-line" data-line="8">    i = low - 1</div>
+                    <div class="code-line" data-line="9">    for j = low to high - 1:</div>
+                    <div class="code-line" data-line="10">        if arr[j] <= pivot:</div>
+                    <div class="code-line" data-line="11">            i++</div>
+                    <div class="code-line" data-line="12">            swap(arr[i], arr[j])</div>
+                    <div class="code-line" data-line="13">    swap(arr[i + 1], arr[high])</div>
+                    <div class="code-line" data-line="14">    return i + 1</div>
+                `;
+                legend.innerHTML = `
+                    <div class="legend-item"><div class="legend-color" style="background: var(--low);"></div><span>Low Pointer</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: var(--mid);"></div><span>i Pointer</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: var(--high);"></div><span>j Pointer</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background: var(--pivot);"></div><span>Pivot</span></div>
+                `;
+            }
+            resetGame();
+            renderArray();
+        }
+
+        function startGame() {
+            if (isRunning) return;
+            if (array.length === 0) generateInitialArray();
+            isRunning = true;
+            array = [...originalArray]; // Reset to original array for each run
+            steps = 0;
+            swaps = 0;
+            timeStart = Date.now();
+            timeElapsed.textContent = '0s'; // Start at 0s
+            clearInterval(timeInterval);
+            timeInterval = setInterval(updateTime, 1000); // Update time every second
+            if (currentAlgorithm === 'dutch') {
+                low = mid = 0;
+                high = array.length - 1;
+                highlightCode(1);
+                updateAnimation('Initializing: low = 0, mid = 0, high = ' + high);
+            } else if (currentAlgorithm === 'bubble') {
+                bubbleI = 0;
+                bubbleJ = 0;
+                highlightCode(1);
+                updateAnimation('Initializing: Starting Bubble Sort');
+            } else if (currentAlgorithm === 'quick') {
+                quickState = { i: -1, j: 0, low: 0, high: array.length - 1, partitioning: true };
+                highlightCode(1);
+                updateAnimation('Starting Quick Sort: low = 0, high = ' + quickState.high);
+            }
+            updateStats();
+            toggleButtons(true);
+            gameStatus.innerHTML = `<h3>${currentAlgorithm.charAt(0).toUpperCase() + currentAlgorithm.slice(1)} Sort Started!</h3><p>Sort the fruits using the algorithm.</p>`;
+            renderArray();
+            updateProgress();
+        }
+
+        function updateTime() {
+            if (isRunning) {
+                const time = Math.floor((Date.now() - timeStart) / 1000);
+                timeElapsed.textContent = `${time}s`;
+            }
+        }
+
+        function step() {
+            if (!isRunning) return;
+            steps++;
+            if (currentAlgorithm === 'dutch') {
+                dutchStep();
+            } else if (currentAlgorithm === 'bubble') {
+                bubbleStep();
+            } else if (currentAlgorithm === 'quick') {
+                quickStep();
+            }
+            updateStats();
+            renderArray();
+            updateProgress();
+            if (isSorted()) endGame();
+        }
+
+        function dutchStep() {
+            if (mid > high) return;
+            highlightCode(5);
+            updateAnimation(`Comparing arr[${mid}] = ${array[mid]}`);
+            if (array[mid] === '🍎') {
+                highlightCode(6);
+                updateAnimation(`arr[${mid}] = 🍎 < 🍊, swapping with low (${low})`);
+                swap(low, mid);
+                low++;
+                mid++;
+                highlightCode(8);
+                updateAnimation(`low = ${low}, mid = ${mid}`);
+            } else if (array[mid] === '🍊') {
+                highlightCode(9);
+                updateAnimation(`arr[${mid}] = 🍊, incrementing mid`);
+                mid++;
+                highlightCode(10);
+                updateAnimation(`mid = ${mid}`);
+            } else {
+                highlightCode(11);
+                updateAnimation(`arr[${mid}] = 🍌 > 🍊, swapping with high (${high})`);
+                swap(mid, high);
+                high--;
+                highlightCode(12);
+                updateAnimation(`high = ${high}`);
+            }
+        }
+
+        let bubbleI = 0, bubbleJ = 0;
+        function bubbleStep() {
+            if (bubbleI >= array.length - 1) return;
+            highlightCode(3);
+            updateAnimation(`Outer loop i = ${bubbleI}`);
+            if (bubbleJ < array.length - bubbleI - 1) {
+                highlightCode(4);
+                updateAnimation(`Comparing arr[${bubbleJ}] = ${array[bubbleJ]} with arr[${bubbleJ + 1}] = ${array[bubbleJ + 1]}`);
+                if (compareFruits(array[bubbleJ], array[bubbleJ + 1]) > 0) {
+                    highlightCode(5);
+                    updateAnimation(`Swapping ${array[bubbleJ]} with ${array[bubbleJ + 1]}`);
+                    swap(bubbleJ, bubbleJ + 1);
+                }
+                bubbleJ++;
+            } else {
+                bubbleJ = 0;
+                bubbleI++;
+                updateAnimation(`Completed pass ${bubbleI}, resetting j to 0`);
+            }
+        }
+
+        let quickStack = [];
+        function quickStep() {
+            if (!quickState.partitioning && quickStack.length === 0) return;
+
+            if (quickState.partitioning) {
+                if (quickState.j === quickState.high) {
+                    highlightCode(13);
+                    updateAnimation(`Partition complete, swapping arr[${quickState.i + 1}] with pivot at ${quickState.high}`);
+                    swap(quickState.i + 1, quickState.high);
+                    let pivotIndex = quickState.i + 1;
+                    if (quickState.low < pivotIndex - 1) quickStack.push({ low: quickState.low, high: pivotIndex - 1 });
+                    if (pivotIndex + 1 < quickState.high) quickStack.push({ low: pivotIndex + 1, high: quickState.high });
+                    quickState.partitioning = false;
+                    highlightCode(3);
+                    updateAnimation(`Pivot placed at ${pivotIndex}, subarrays to process: ${quickStack.length}`);
+                } else {
+                    highlightCode(9);
+                    updateAnimation(`j = ${quickState.j}, comparing arr[${quickState.j}] = ${array[quickState.j]} with pivot ${array[quickState.high]}`);
+                    if (compareFruits(array[quickState.j], array[quickState.high]) <= 0) {
+                        quickState.i++;
+                        highlightCode(11);
+                        updateAnimation(`i = ${quickState.i}, arr[${quickState.j}] ≤ pivot, swapping with arr[${quickState.i}]`);
+                        swap(quickState.i, quickState.j);
+                    }
+                    quickState.j++;
+                }
+            } else if (quickStack.length > 0) {
+                let { low: qLow, high: qHigh } = quickStack.pop();
+                quickState = { i: qLow - 1, j: qLow, low: qLow, high: qHigh, partitioning: true };
+                highlightCode(2);
+                updateAnimation(`New partition: low = ${qLow}, high = ${qHigh}`);
+            }
+        }
+
+        function swap(i, j) {
+            if (i === j || i < 0 || j < 0 || i >= array.length || j >= array.length) return;
+            swaps++;
+            [array[i], array[j]] = [array[j], array[i]];
+            const items = arrayContainer.children;
+            items[i].classList.add('swap-animation');
+            items[j].classList.add('swap-animation');
+            setTimeout(() => {
+                items[i].classList.remove('swap-animation');
+                items[j].classList.remove('swap-animation');
+            }, 800);
+        }
+
+        function autoRun() {
+            if (!isRunning) return;
+            clearInterval(intervalId);
+            const speedMs = 1000 / speed.value;
+            intervalId = setInterval(() => {
+                if (!isSorted()) {
+                    step();
+                } else {
+                    clearInterval(intervalId);
+                    endGame();
+                }
+            }, speedMs);
+        }
+
+        function resetGame() {
+            isRunning = false;
+            clearInterval(intervalId);
+            clearInterval(timeInterval);
+            array = [...originalArray];
+            low = mid = high = pivot = 0;
+            bubbleI = bubbleJ = 0;
+            quickStack = [];
+            quickState = { i: -1, j: 0, low: 0, high: 0, partitioning: false };
+            steps = 0;
+            swaps = 0;
+            timeElapsed.textContent = '0s';
+            arrayContainer.innerHTML = '';
+            algoAnimation.innerHTML = '<p>Algorithm steps will appear here during sorting.</p>';
+            gameStatus.innerHTML = `<h3>${currentAlgorithm.charAt(0).toUpperCase() + currentAlgorithm.slice(1)} Sort</h3><p>Click "Start Game" to begin or modify the array.</p>`;
+            toggleButtons(false);
+            progressBar.style.width = '0%';
+            updateStats();
+            document.querySelectorAll('.code-line').forEach(line => line.classList.remove('active'));
+            updateFruitControls();
+            renderArray();
+        }
+
+        function endGame() {
+            isRunning = false;
+            clearInterval(intervalId);
+            clearInterval(timeInterval);
+            toggleButtons(false);
+            gameStatus.innerHTML = '<h3>Victory!</h3><p>Congratulations! The fruits are sorted!</p>';
+            algoAnimation.innerHTML = '<p>Sorting completed!</p>';
+            progressBar.style.width = '100%';
+            triggerConfetti();
+            arrayContainer.querySelectorAll('.fruit-item').forEach(item => item.classList.add('victory'));
+            addResult();
+        }
+
+        function goHome() {
+    window.location.href = 'index.html'; 
+}
+
+        function toggleButtons(active) {
+            startBtn.disabled = active;
+            stepBtn.disabled = !active;
+            autoBtn.disabled = !active;
+            resetBtn.disabled = !active;
+        }
+
+        function updateStats() {
+            stepsCount.textContent = steps;
+            swapsCount.textContent = swaps;
+            const optimalSwaps = Math.floor(array.length / 2);
+            const efficiency = Math.min(100, Math.max(0, 100 - ((swaps - optimalSwaps) * 10)));
+            efficiencyScore.textContent = `${efficiency}%`;
+        }
+
+        function updateProgress() {
+            const total = array.length || 1;
+            let sorted = 0;
+            if (currentAlgorithm === 'dutch') {
+                sorted = low + (array.length - high - 1);
+            } else {
+                sorted = isSorted() ? total : Math.min(steps, total);
+            }
+            progressBar.style.width = `${(sorted / total) * 100}%`;
+        }
+
+        function highlightCode(line) {
+            document.querySelectorAll('.code-line').forEach(l => l.classList.remove('active'));
+            const lineElement = document.querySelector(`.code-line[data-line="${line}"]`);
+            if (lineElement) lineElement.classList.add('active');
+        }
+
+        function updateAnimation(message) {
+            algoAnimation.innerHTML = `<p>${message}</p>`;
+        }
+
+        function showHint() {
+            let hint = '';
+            if (!isRunning) {
+                hint = 'Click "Start Game" to begin or modify the array!';
+            } else if (currentAlgorithm === 'dutch' && mid <= high) {
+                if (array[mid] === '🍎') hint = 'Swap with low pointer and increment both low and mid';
+                else if (array[mid] === '🍊') hint = 'Increment mid pointer';
+                else hint = 'Swap with high pointer and decrement high';
+            } else if (currentAlgorithm === 'bubble' && bubbleI < array.length - 1) {
+                hint = 'Compare adjacent fruits and swap if out of order';
+            } else if (currentAlgorithm === 'quick' && quickState.partitioning) {
+                hint = 'Compare with pivot and adjust i/j pointers';
+            } else {
+                hint = 'Sorting complete! Reset to play again.';
+            }
+            gameStatus.innerHTML = `<h3>Hint</h3><p>${hint}</p>`;
+        }
+
+        function triggerConfetti() {
+            const sparkles = document.getElementById('sparkles');
+            for (let i = 0; i < 40; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.animationDelay = `${Math.random() * 1.5}s`;
+                sparkles.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function isSorted() {
+            for (let i = 1; i < array.length; i++) {
+                if (compareFruits(array[i - 1], array[i]) > 0) return false;
+            }
+            return true;
+        }
+
+        function compareFruits(a, b) {
+            const order = ['🍎', '🍊', '🍌'];
+            return order.indexOf(a) - order.indexOf(b);
+        }
+
+        function addResult() {
+            const time = Math.floor((Date.now() - timeStart) / 1000);
+            const optimalSwaps = Math.floor(array.length / 2);
+            const efficiency = Math.min(100, Math.max(0, 100 - ((swaps - optimalSwaps) * 10)));
+            const sortedArray = array.join(' ');
+            results.push({
+                algorithm: currentAlgorithm,
+                steps,
+                swaps,
+                time,
+                efficiency,
+                sortedArray
+            });
+            renderResults();
+        }
+
+        function renderResults() {
+            resultsTable.innerHTML = '';
+            let dutchStats = null;
+            results.forEach(result => {
+                if (result.algorithm === 'dutch') dutchStats = result;
+            });
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                let difference = '-';
+                if (result.algorithm !== 'dutch' && dutchStats) {
+                    const stepDiff = result.steps - dutchStats.steps;
+                    const swapDiff = result.swaps - dutchStats.swaps;
+                    const timeDiff = result.time - dutchStats.time;
+                    difference = `Steps: ${stepDiff > 0 ? '+' : ''}${stepDiff}, Swaps: ${swapDiff > 0 ? '+' : ''}${swapDiff}, Time: ${timeDiff > 0 ? '+' : ''}${timeDiff}s`;
+                }
+                row.innerHTML = `
+                    <td>${result.algorithm.charAt(0).toUpperCase() + result.algorithm.slice(1)}</td>
+                    < serais: ${result.steps}</td>
+                    <td>${result.swaps}</td>
+                    <td>${result.time}s</td>
+                    <td>${result.efficiency}%</td>
+                    <td>${difference}</td>
+                    <td>${result.sortedArray}</td>
+                `;
+                resultsTable.appendChild(row);
+            });
+        }
+
+        function startDutchFlag() {
+            updateUI('dutch');
+            document.getElementById('levelText').textContent = 'Level 1: Dutch Flag';
+        }
+
+        function startBubbleSort() {
+            updateUI('bubble');
+            document.getElementById('levelText').textContent = 'Level 2: Bubble Sort';
+        }
+
+        function startQuickSort() {
+            updateUI('quick');
+            document.getElementById('levelText').textContent = 'Level 3: Quick Sort';
+        }
+
+        initSparkles();
+        generateInitialArray();
+        startDutchFlag();
+    </script>
+</body>
+</html>

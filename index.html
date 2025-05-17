@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fruit Sorting Algorithm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --apple-red: #ff6b6b;
+            --orange-orange: #ffa502;
+            --banana-yellow: #ffeaa7;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .floating-fruits {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .fruit {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.3;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #f5f5f5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #764ba2;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            backdrop-filter: blur(5px);
+            margin-left: 1rem;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            background: var(--secondary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .demo-section {
+            background: white;
+            padding: 4rem 2rem;
+            border-radius: 16px;
+            margin: 4rem 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .algorithm-visual {
+            width: 100%;
+            height: 300px;
+            background: var(--secondary-gradient);
+            border-radius: 12px;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .algorithm-bar {
+            position: absolute;
+            bottom: 0;
+            width: 30px;
+            background: var(--apple-red);
+            transition: all 0.5s ease;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            background: #2a2a2a;
+            color: white;
+            margin-top: 4rem;
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .social-links a {
+            color: white;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            transform: translateY(-3px);
+            color: #667eea;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .btn {
+                display: block;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .btn-secondary {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="floating-fruits" id="floatingFruits"></div>
+        <div class="container">
+            <div class="hero animate__animated animate__fadeIn">
+                <h1>Linear-Time Fruit Sorting</h1>
+                <p>Visualizing the Dutch National Flag Algorithm for efficient O(n) sorting of apples, oranges, and bananas</p>
+                <div>
+                    <a href="algorithm.html" class="btn btn-primary animate__animated animate__pulse animate__infinite animate__slower">View Animated Demo</a>
+                    <a href="#learn-more" class="btn btn-secondary">Learn How It Works</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <section id="learn-more" class="animate__animated animate__fadeInUp">
+            <h2 style="text-align: center; margin-bottom: 2rem; font-size: 2.5rem;">Why This Algorithm Matters</h2>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 3rem; font-size: 1.1rem;">
+                In food distribution centers, efficiently sorting mixed fruit shipments is crucial. This algorithm solves the problem in linear time with constant space complexity, making it perfect for real-world applications.
+            </p>
+            
+            <div class="features">
+                <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Blazing Fast</h3>
+                    <p>Processes mixed fruit shipments in a single pass with O(n) time complexity, perfect for large-scale operations.</p>
+                </div>
+                <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+                    <div class="feature-icon">💾</div>
+                    <h3>Memory Efficient</h3>
+                    <p>Uses only O(1) extra space by swapping elements within the array, ideal for embedded systems.</p>
+                </div>
+                <div class="feature-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+                    <div class="feature-icon">👁️</div>
+                    <h3>Visually Intuitive</h3>
+                    <p>The three-pointer approach makes it easy to understand and visualize the sorting process.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="demo-section animate__animated animate__fadeInUp" style="animation-delay: 0.4s">
+            <div class="demo-container">
+                <h2>Algorithm Preview</h2>
+                <p>See a simplified visualization of how the algorithm works before diving into the interactive demo</p>
+                
+                <div class="algorithm-visual" id="algorithmPreview">
+                    <!-- Bars will be added by JavaScript -->
+                </div>
+                
+                <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;">
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 20px; height: 20px; background: var(--apple-red); border-radius: 4px; margin-right: 0.5rem;"></div>
+                        <span>Apples</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 20px; height: 20px; background: var(--orange-orange); border-radius: 4px; margin-right: 0.5rem;"></div>
+                        <span>Oranges</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 20px; height: 20px; background: var(--banana-yellow); border-radius: 4px; margin-right: 0.5rem;"></div>
+                        <span>Bananas</span>
+                    </div>
+                </div>
+                
+                <a href="algorithm.html" class="btn btn-primary" style="margin-top: 2rem;">Try Interactive Demo</a>
+            </div>
+        </section>
+        
+        <section class="animate__animated animate__fadeInUp" style="animation-delay: 0.5s">
+            <h2 style="text-align: center; margin-bottom: 2rem; font-size: 2rem;">How It Compares</h2>
+            
+            <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f5f7fa;">
+                            <th style="padding: 1rem; text-align: left;">Algorithm</th>
+                            <th style="padding: 1rem; text-align: center;">Time Complexity</th>
+                            <th style="padding: 1rem; text-align: center;">Space Complexity</th>
+                            <th style="padding: 1rem; text-align: center;">Stable</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 1rem;">Quick Sort</td>
+                            <td style="padding: 1rem; text-align: center;">O(n log n)</td>
+                            <td style="padding: 1rem; text-align: center;">O(log n)</td>
+                            <td style="padding: 1rem; text-align: center;">No</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 1rem;">Merge Sort</td>
+                            <td style="padding: 1rem; text-align: center;">O(n log n)</td>
+                            <td style="padding: 1rem; text-align: center;">O(n)</td>
+                            <td style="padding: 1rem; text-align: center;">Yes</td>
+                        </tr>
+                        <tr style="background: #f0f4ff; font-weight: 600;">
+                            <td style="padding: 1rem;">Dutch National Flag (Our Solution)</td>
+                            <td style="padding: 1rem; text-align: center;">O(n)</td>
+                            <td style="padding: 1rem; text-align: center;">O(1)</td>
+                            <td style="padding: 1rem; text-align: center;">No</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    <footer>
+        <div class="container">
+            <h3>Linear-Time Fruit Sorter</h3>
+            <p>Design and Analysis of Algorithms Project</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-github"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p>&copy; 2023 Algorithm Visualizer. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        // Create floating fruits animation
+        const floatingFruits = document.getElementById('floatingFruits');
+        const fruits = ['🍎', '🍊', '🍌'];
+        
+        for (let i = 0; i < 20; i++) {
+            const fruit = document.createElement('div');
+            fruit.className = 'fruit';
+            fruit.textContent = fruits[Math.floor(Math.random() * fruits.length)];
+            
+            // Random position
+            fruit.style.left = `${Math.random() * 100}%`;
+            fruit.style.top = `${Math.random() * 100}%`;
+            
+            // Random animation duration and delay
+            fruit.style.animationDuration = `${10 + Math.random() * 20}s`;
+            fruit.style.animationDelay = `-${Math.random() * 20}s`;
+            
+            floatingFruits.appendChild(fruit);
+        }
+        
+        // Algorithm preview animation
+        const algorithmPreview = document.getElementById('algorithmPreview');
+        const barCount = 20;
+        let bars = [];
+        
+        // Create bars
+        for (let i = 0; i < barCount; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'algorithm-bar';
+            
+            // Random fruit type
+            const fruitType = Math.floor(Math.random() * 3);
+            if (fruitType === 0) {
+                bar.style.background = 'var(--apple-red)';
+            } else if (fruitType === 1) {
+                bar.style.background = 'var(--orange-orange)';
+            } else {
+                bar.style.background = 'var(--banana-yellow)';
+            }
+            
+            bar.style.height = `${30 + Math.random() * 70}%`;
+            bar.style.left = `${i * (100 / barCount)}%`;
+            
+            algorithmPreview.appendChild(bar);
+            bars.push(bar);
+        }
+        
+        // Animate sorting
+        function animateSort() {
+            // Simulate the Dutch National Flag algorithm
+            let low = 0;
+            let mid = 0;
+            let high = bars.length - 1;
+            
+            const sortInterval = setInterval(() => {
+                if (mid > high) {
+                    clearInterval(sortInterval);
+                    setTimeout(animateSort, 2000); // Restart animation after delay
+                    return;
+                }
+                
+                // Highlight current pointers
+                bars.forEach((bar, i) => {
+                    bar.style.boxShadow = 'none';
+                    if (i === low) bar.style.boxShadow = '0 0 0 3px #fff';
+                    if (i === mid) bar.style.boxShadow = '0 0 0 3px #4CAF50';
+                    if (i === high) bar.style.boxShadow = '0 0 0 3px #2196F3';
+                });
+                
+                // Get current bar color
+                const currentColor = bars[mid].style.background;
+                
+                if (currentColor.includes('var(--apple-red)')) {
+                    // Swap with low
+                    const tempHeight = bars[low].style.height;
+                    bars[low].style.height = bars[mid].style.height;
+                    bars[mid].style.height = tempHeight;
+                    
+                    const tempColor = bars[low].style.background;
+                    bars[low].style.background = bars[mid].style.background;
+                    bars[mid].style.background = tempColor;
+                    
+                    low++;
+                    mid++;
+                } else if (currentColor.includes('var(--orange-orange)')) {
+                    // Just move mid
+                    mid++;
+                } else {
+                    // Swap with high
+                    const tempHeight = bars[mid].style.height;
+                    bars[mid].style.height = bars[high].style.height;
+                    bars[high].style.height = tempHeight;
+                    
+                    const tempColor = bars[mid].style.background;
+                    bars[mid].style.background = bars[high].style.background;
+                    bars[high].style.background = tempColor;
+                    
+                    high--;
+                }
+            }, 500);
+        }
+        
+        // Start animation after a delay
+        setTimeout(animateSort, 1000);
+    </script>
+</body>
+</html>
